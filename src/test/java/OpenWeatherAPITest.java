@@ -1,3 +1,4 @@
+import com.jayway.restassured.http.ContentType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,6 +10,7 @@ import static com.jayway.restassured.RestAssured.baseURI;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThan;
 
 
 public class OpenWeatherAPITest {
@@ -21,14 +23,14 @@ public class OpenWeatherAPITest {
     }
 
     @Test
-    public void basicPingTest() {
+    public void shouldReturnSuccesStatusCode() {
         given().param("q", "London,uk").param("appid", API_KEY)
                 .when().get("/weather")
                 .then().statusCode(200);
     }
 
     @Test
-    public void responseBodyVerificationTest() {
+    public void responseBodyShouldContainCorrectValues() {
         given().param("q", "London,uk").param("appid", API_KEY)
                 .when().get("/weather")
                 .then().statusCode(200)
@@ -38,13 +40,30 @@ public class OpenWeatherAPITest {
     }
 
     @Test
-    public void severalCityIdRequestTest(){
+    public void shouldHandleSeveralCityIdRequest(){
         List <String> cityIds = Arrays.asList("524901","703448","2643743");
         given().parameter("id", cityIds).param("units", "metric").param("appid", API_KEY)
                 .when().get("/group")
                 .then().statusCode(200)
                 .body("cnt", equalTo(3))
                 .body("list", hasSize(3));
+    }
+
+    @Test
+    public void contentTypeShouldBeJson(){
+        given().param("q", "London,uk").param("appid", API_KEY)
+                .when().get("/weather")
+                .then().statusCode(200)
+                .contentType(ContentType.JSON);
+    }
+
+    @Test
+    public void verifyResponseTime(){
+        List <String> cityIds = Arrays.asList("524901","703448","2643743");
+        given().parameter("id", cityIds).param("units", "metric").param("appid", API_KEY)
+                .when().get("/group")
+                .then().time(lessThan(1000L));
+
     }
 
 }
